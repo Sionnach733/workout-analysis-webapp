@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
+
+    <title>Dashboard Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="dashboard.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Workout Analysis</a>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          <div class="sidebar-sticky">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link active" href="#Dashboard">
+                  <span data-feather="home"></span>
+                  Dashboard <span class="sr-only">(current)</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a id="All" class="nav-link" href="#All">
+                  <span data-feather="activity"></span>
+                  All
+                </a>
+              </li>
+              <li class="nav-item">
+                <a id="Warmup" class="nav-link" href="#Warmup">
+                  <span data-feather="pie-chart"></span>
+                  Warmup
+                </a>
+              </li>
+              <li class="nav-item">
+                <a id="Strength" class="nav-link" href="#Strength">
+                  <span data-feather="bar-chart"></span>
+                  Strength
+                </a>
+              </li>
+              <li id="Wod" class="nav-item">
+                <a class="nav-link" href="#Wod">
+                  <span data-feather="bar-chart-2"></span>
+                  Wod
+                </a>
+              </li>
+              <li id="Skills" class="nav-item">
+                <a class="nav-link" href="#Skills">
+                  <span data-feather="layers"></span>
+                  Skills
+                </a>
+              </li>
+              <li id="Primitives" class="nav-item">
+                <a class="nav-link" href="#Primitives">
+                  <span data-feather="crosshair"></span>
+                  Primitives
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+            <h1 class="h2">Bubble Chart</h1>
+          </div>
+          <svg class="my-4" id="myChart" width="900" height="960" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>
+        </main>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="../assets/js/vendor/popper.min.js"></script>
+    <script src="../dist/js/bootstrap.min.js"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+    <script>
+      feather.replace()
+    </script>
+
+    <!-- Graphs -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script>
+    //add click events for dashboard
+
+    //get wod data
+        getWodData();
+
+    //add charting functionality
+        
+
+        function renderGraph(filter, rawWodData){
+            var svg = d3.select("#myChart"),
+                    width = +svg.attr("width"),
+                    height = +svg.attr("height");
+
+            var format = d3.format(",d");
+
+            var color = d3.scaleOrdinal(d3.schemeCategory20c);
+
+            var pack = d3.pack()
+                .size([width, height])
+                .padding(1.5);
+
+            var filteredData;
+            if(filter === 'primitive'){
+                var refinedData = getRefinedWodData(rawWodData, 'all');
+                //using refined data simplify the movements to primitives
+                filteredData = primitiveRefinedData(refinedData);
+            }else{
+                filteredData = getRefinedWodData(rawWodData, filter);
+            }
+
+
+            var root = d3.hierarchy({children: filteredData})
+                .sum(function(data) { return data.value; })
+                .each(function(data) {
+                    if (id = data.data.id) {
+                        var id, i = id.lastIndexOf(".");
+                        data.id = id;
+                        data.package = id.slice(0, i);1
+                        data.class = id.slice(i + 1);
+                    }
+                });
+
+            var node = svg.selectAll(".node")
+                .data(pack(root).leaves())
+                .enter().append("g")
+                .attr("class", "node")
+                .attr("transform", function(data) { return "translate(" + data.x + "," + data.y + ")"; });
+
+            node.append("circle")
+                .attr("id", function(data) { return data.id; })
+                .attr("r", function(data) { return data.r; })
+                .style("fill", function(data) { return color(data.package); });
+
+            node.append("clipPath")
+                .attr("id", function(data) { return "clip-" + data.id; })
+                .append("use")
+                .attr("xlink:href", function(data) { return "#" + data.id; });
+
+            node.append("text")
+                .attr("clip-path", function(data) { return "url(#clip-" + data.id + ")"; })
+                .selectAll("tspan")
+                .data(function(data) { return data.class.split(/(?=[A-Z][^A-Z])/g); })
+                .enter().append("tspan")
+                .attr("x", 0)
+                .attr("y", 0)
+                .text(function(data) { return data; });
+
+            node.append("title")
+                .text(function(data) { return data.id + "\n" + format(data.value); });
+
+        }
+
+        function getWodData() {
+            $.ajax({
+              url: "data.json",
+              dataType: 'json',
+              success: function(data) {
+                renderGraph("all", data);
+
+                $( "#All" ).click(function() {
+                  $("#myChart").empty();
+                  renderGraph("all", data);
+                });
+                $( "#Warmup" ).click(function() {
+                  $("#myChart").empty();
+                  renderGraph("warmup", data);
+                });
+                $( "#Strength" ).click(function() {
+                  $("#myChart").empty();
+                  renderGraph("strength", data);
+                });
+                $( "#Wod" ).click(function() {
+                  $("#myChart").empty();
+                  renderGraph("wod", data);
+                });
+                $( "#Skills" ).click(function() {
+                  $("#myChart").empty();
+                  renderGraph("skills", data);
+                });
+                $( "#Primitives" ).click(function() {
+                  $("#myChart").empty();
+                  renderGraph("primitive", data);
+                });
+              }
+            });
+        }
+
+        function getRefinedWodData(wodData, type){
+            var refinedData = [];
+            for( var movement in wodData){
+                if(wodData[movement].type === type || type === 'all') {
+                    if (refinedData.length === 0) {
+                        refinedData.push({'id': wodData[movement].value, 'value': 1});
+                    } else {
+                        //check if movement is unique
+                        var isUnique = true;
+                        for (var i = 0; i < refinedData.length; i++) {
+                            if (refinedData[i].id === wodData[movement].value) {
+                                //increment counter
+                                refinedData[i].value = refinedData[i].value + 1;
+                                isUnique = false;
+                                break;
+                            }
+                        }
+                        if (isUnique) {
+                            //add as new
+                            refinedData.push({'id': wodData[movement].value, 'value': 1});
+                        }
+                    }
+                }
+            }
+            return refinedData;
+        }
+
+        function primitiveRefinedData(data){
+            var primitiveRefinedData = [
+                {'id': "squat", 'value': 0, 'subTypes': 'squat,thruster,wall ball'},
+                {'id': "bench/push up", 'value': 0, 'subTypes': 'bench,push up'},
+                {'id': "deadlift", 'value': 0, 'subTypes': 'deadlift,sdhp'},
+                {'id': "press", 'value': 0, 'subTypes': 'press,hspu,thruster,c&j,cluster,wall ball,jerk'},
+                {'id': "clean", 'value': 0, 'subTypes': 'clean,cluster,c&j'},
+                {'id': "snatch", 'value': 0, 'subTypes': 'snatch'},
+                {'id': "cardio", 'value': 0, 'subTypes': 'run,swim,row,burpee,bike'},
+                {'id': "skip", 'value': 0, 'subTypes': 'su,du,tu'},
+                {'id': "ttb", 'value': 0, 'subTypes': 'ttb,kte'},
+                {'id': "sit up", 'value': 0, 'subTypes': 'ghd,sit up'},
+                {'id': "pull up", 'value': 0, 'subTypes': 'pull up,c2b'},
+                {'id': "muscle up", 'value': 0, 'subTypes': 'ring mu,bar mu'},
+                {'id': "lunge", 'value': 0, 'subTypes': 'lunge'},
+                {'id': "rope climb", 'value': 0, 'subTypes': 'rope'},
+                {'id': "handstand", 'value': 0, 'subTypes': 'hs'},
+                {'id': "jump", 'value': 0, 'subTypes': 'jump'},
+                {'id': "other", 'value': 0, 'subTypes': undefined}
+            ];
+            for( var movement in data){
+                //check which primitive(s) movement belongs to
+                for(var primitiveMovement in primitiveRefinedData){
+                    if(primitiveRefinedData[primitiveMovement].subTypes){
+                        var subTypes = primitiveRefinedData[primitiveMovement].subTypes.split(",");
+                        for(var subType in subTypes){
+                            if (data[movement].id.indexOf(subTypes[subType]) !== -1) {
+                                primitiveRefinedData[primitiveMovement].value = primitiveRefinedData[primitiveMovement].value + data[movement].value;
+                            }
+                        }
+                    }else{
+                        var others ="squat,thruster,bench,deadlift,sdhp,press,hspu,c&j,cluster,clean,snatch,run,swim,row,burpee,su,du,tu,ttb,kte,ghd,sit up,pull up,c2b,ring mu,bar mu,lunge,rope,hs,wall ball,jerk,jump,push up,bike";
+                        var othersArr = others.split(",");
+                        var isOther = true;
+                        for(var other in othersArr){
+                            if (data[movement].id.indexOf(othersArr[other]) !== -1) {
+                                isOther = false;
+                                break;
+                            }
+                        }
+                        if(isOther) {
+                            primitiveRefinedData[16].value = primitiveRefinedData[16].value + data[movement].value;
+                        }
+                    }
+                }
+            }
+            return primitiveRefinedData;
+        }
+    
+    </script>
+  </body>
+</html>
