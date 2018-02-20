@@ -27,7 +27,7 @@
           <div class="sidebar-sticky">
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link active" href="#Dashboard">
+                <a class="nav-link active" href="#">
                   <span data-feather="home"></span>
                   Dashboard <span class="sr-only">(current)</span>
                 </a>
@@ -100,6 +100,7 @@
     <script>
         getWodData();
         function renderGraph(filter, rawWodData){
+
             var svg = d3.select("#myChart"),
                     width = +svg.attr("width"),
                     height = +svg.attr("height");
@@ -128,7 +129,7 @@
                     if (id = data.data.id) {
                         var id, i = id.lastIndexOf(".");
                         data.id = id;
-                        data.package = id.slice(0, i);1
+                        data.package = id.slice(0, i);
                         data.class = id.slice(i + 1);
                     }
                 });
