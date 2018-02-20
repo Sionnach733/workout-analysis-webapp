@@ -98,14 +98,7 @@
     <!-- Graphs -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
-    //add click events for dashboard
-
-    //get wod data
         getWodData();
-
-    //add charting functionality
-        
-
         function renderGraph(filter, rawWodData){
             var svg = d3.select("#myChart"),
                     width = +svg.attr("width"),
