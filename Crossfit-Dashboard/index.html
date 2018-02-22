@@ -115,7 +115,6 @@
     <!-- Graphs -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
-        createDateToolbar();
         getWodData();
         function renderGraph(filter, rawWodData){
 
@@ -188,6 +187,7 @@
               dataType: 'json',
               success: function(data) {
                 renderGraph("all", data);
+                createDateToolbar(data);
 
                 $( "#All" ).click(function() {
                   $("#myChart").empty();
@@ -293,27 +293,63 @@
             return primitiveRefinedData;
         }
 
-        function createDateToolbar(){
-            var fromDatePicker = $('#from-datepicker')
-                .datepicker({
+        function getDataInDateRange(data, dateFrom, dateTo){
+            var dateRangeData = [];
+            for( var movement in data){
+                if(data[movement].date){
+                    if(isDateWithinRange(data[movement].date,dateFrom,dateTo)){
+                        dateRangeData.push(data[movement]);
+                    }
+                }
+            }
+            return dateRangeData;
+        }
+
+        function isDateWithinRange(date,dateFrom,dateTo) {
+            date = stringToDate(date);
+            dateFrom = stringToDate(dateFrom);
+            dateTo = stringToDate(dateTo);
+            return dateFrom <= date && date <= dateTo;
+        }
+
+        function createDateToolbar(data){
+            var fromDatePicker = $('#from-datepicker');
+            var toDatePicker = $('#to-datepicker');
+
+
+            fromDatePicker.datepicker({
                     format: 'dd/mm/yyyy'
                 })
                 .on('changeDate', function() {
-                    //alert("date changed");
+                    //render graph with date range
+                    if(fromDatePicker.val() && toDatePicker.val()){
+                        var dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
+                        $("#myChart").empty();
+                        renderGraph('all', dateRangeData);
+                    }
                 });
 
-            var toDatePicker = $('#to-datepicker')
-                .datepicker({
+            toDatePicker.datepicker({
                     format: 'dd/mm/yyyy'
                 })
                 .on('changeDate', function() {
-                    //alert("date changed");
+                    //render graph with date range
+                    if(fromDatePicker.val() && toDatePicker.val()){
+                        var dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
+                        $("#myChart").empty();
+                        renderGraph('all', dateRangeData);
+                    }
                 });
 
             $('#clear-btn').button().click(function(){
-                $('#from-datepicker').datepicker('setDate', null);
-                $('#to-datepicker').datepicker('setDate', null);
+                fromDatePicker.datepicker('setDate', null);
+                toDatePicker.datepicker('setDate', null);
             })
+        }
+
+        function stringToDate(str){
+            var dateParts = str.split("/");
+            return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
         }
     
     </script>
