@@ -14,6 +14,7 @@
 
     <!-- Custom styles for this template -->
     <link href="dashboard.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css" rel="stylesheet">
   </head>
 
   <body>
@@ -75,6 +76,21 @@
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
           <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
             <h1 class="h2">Bubble Chart</h1>
+            <div id="date-toolbar" class="btn-toolbar mb-2 mb-md-0">
+              <button id="clear-btn" type="button" class="btn btn-outline-secondary mr-md-2">Clear</button>
+              <div class="input-group mr-2">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">From:</span>
+                </div>
+                <input id="from-datepicker" type="text" class="form-control" placeholder="">
+              </div>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">To:</span>
+                </div>
+                <input id="to-datepicker" type="text" class="form-control" placeholder="">
+              </div>
+            </div>
           </div>
           <svg class="my-4" id="myChart" width="900" height="960" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>
         </main>
@@ -88,6 +104,7 @@
     <script>window.jQuery || document.write('<script src="../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
     <script src="../assets/js/vendor/popper.min.js"></script>
     <script src="../dist/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.min.js"></script>
 
     <!-- Icons -->
     <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
@@ -98,6 +115,7 @@
     <!-- Graphs -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
+        createDateToolbar();
         getWodData();
         function renderGraph(filter, rawWodData){
 
@@ -273,6 +291,26 @@
                 }
             }
             return primitiveRefinedData;
+        }
+
+        function createDateToolbar(){
+            var fromDatePicker = $('#from-datepicker')
+                .datepicker({
+                    format: 'dd/mm/yyyy'
+                })
+                .on('changeDate', function() {
+                    alert("date changed");
+                });
+            var toDatePicker = $('#to-datepicker')
+                .datepicker({
+                    format: 'dd/mm/yyyy'
+                })
+                .on('changeDate', function() {
+                    alert("date changed");
+                });
+            $('#clear-btn').button().click(function(){
+                alert("ok");
+            })
         }
     
     </script>
