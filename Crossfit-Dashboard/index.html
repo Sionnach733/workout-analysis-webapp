@@ -299,17 +299,20 @@
                     format: 'dd/mm/yyyy'
                 })
                 .on('changeDate', function() {
-                    alert("date changed");
+                    //alert("date changed");
                 });
+
             var toDatePicker = $('#to-datepicker')
                 .datepicker({
                     format: 'dd/mm/yyyy'
                 })
                 .on('changeDate', function() {
-                    alert("date changed");
+                    //alert("date changed");
                 });
+
             $('#clear-btn').button().click(function(){
-                alert("ok");
+                $('#from-datepicker').datepicker('setDate', null);
+                $('#to-datepicker').datepicker('setDate', null);
             })
         }
     
