@@ -344,6 +344,8 @@
             $('#clear-btn').button().click(function(){
                 fromDatePicker.datepicker('setDate', null);
                 toDatePicker.datepicker('setDate', null);
+                $("#myChart").empty();
+                renderGraph('all', data);
             })
         }
 
