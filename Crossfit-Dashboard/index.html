@@ -15,6 +15,7 @@
     <!-- Custom styles for this template -->
     <link href="dashboard.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="barChart/barchart.css" rel="stylesheet">
   </head>
 
   <body>
@@ -75,7 +76,7 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
           <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-            <h1 class="h2">Bubble Chart</h1>
+            <h1 class="h2">Movements Bubble Chart</h1>
             <div id="date-toolbar" class="btn-toolbar mb-2 mb-md-0">
               <button id="clear-btn" type="button" class="btn btn-outline-secondary mr-md-2">Clear</button>
               <div class="input-group mr-2">
@@ -93,6 +94,10 @@
             </div>
           </div>
           <svg class="my-4" id="myChart" width="900" height="960" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>
+          <h1 class ="h2 border-bottom pb-2">Top Movement Vs Mainsite</h1>
+          <div id="mytoptrends"></div>
+          <h1 class ="h2 border-bottom pb-2">Top 5 Biggest Differences</h1>
+          <svg class="my-4" id="myTop5Diffs" width="900" height="960" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>
         </main>
       </div>
     </div>
@@ -104,6 +109,7 @@
     <script>window.jQuery || document.write('<script src="../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
     <script src="../assets/js/vendor/popper.min.js"></script>
     <script src="../dist/js/bootstrap.min.js"></script>
+    <!--<script src="../dist/js/require.js"></script>-->
     <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.min.js"></script>
 
     <!-- Icons -->
@@ -114,44 +120,49 @@
 
     <!-- Graphs -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="utils/utils.js"></script>
+    <script src="barChart/barchart.js"></script>
     <script>
         getWodData();
-        function renderGraph(filter, rawWodData){
+        function renderGraph(filter, rawWodData, rawMainsiteData){
 
-            var svg = d3.select("#myChart"),
+            let svg = d3.select("#myChart"),
                     width = +svg.attr("width"),
                     height = +svg.attr("height");
 
-            var format = d3.format(",d");
+            let format = d3.format(",d");
 
-            var color = d3.scaleOrdinal(d3.schemeCategory20c);
+            let color = d3.scaleOrdinal(d3.schemeCategory20c);
 
-            var pack = d3.pack()
+            let pack = d3.pack()
                 .size([width, height])
                 .padding(1.5);
 
-            var filteredData;
+            let filteredData, filteredMainsiteData;
             if(filter === 'primitive'){
-                var refinedData = getRefinedWodData(rawWodData, 'all');
+                let refinedData = getRefinedWodData(rawWodData, 'all');
                 //using refined data simplify the movements to primitives
                 filteredData = primitiveRefinedData(refinedData);
+                let refinedMainsiteDataData = getRefinedWodData(rawMainsiteData, 'all');
+                //using refined data simplify the movements to primitives
+                filteredMainsiteData = primitiveRefinedData(refinedMainsiteDataData);
             }else{
                 filteredData = getRefinedWodData(rawWodData, filter);
+                filteredMainsiteData = getRefinedWodData(rawMainsiteData, filter);
             }
 
+            new BarChart(getTopMovements(filteredData,filteredMainsiteData));
 
-            var root = d3.hierarchy({children: filteredData})
+            let root = d3.hierarchy({children: filteredData})
                 .sum(function(data) { return data.value; })
                 .each(function(data) {
-                    if (id = data.data.id) {
-                        var id, i = id.lastIndexOf(".");
+                    if (data.data.id) {
+                        let id = data.data.id;
                         data.id = id;
-                        data.package = id.slice(0, i);
-                        data.class = id.slice(i + 1);
                     }
                 });
 
-            var node = svg.selectAll(".node")
+            let node = svg.selectAll(".node")
                 .data(pack(root).leaves())
                 .enter().append("g")
                 .attr("class", "node")
@@ -160,7 +171,7 @@
             node.append("circle")
                 .attr("id", function(data) { return data.id; })
                 .attr("r", function(data) { return data.r; })
-                .style("fill", function(data) { return color(data.package); });
+                .style("fill", function(data) { return color(data.id); });
 
             node.append("clipPath")
                 .attr("id", function(data) { return "clip-" + data.id; })
@@ -170,7 +181,7 @@
             node.append("text")
                 .attr("clip-path", function(data) { return "url(#clip-" + data.id + ")"; })
                 .selectAll("tspan")
-                .data(function(data) { return data.class.split(/(?=[A-Z][^A-Z])/g); })
+                .data(function(data) { return data.id.split(/(?=[A-Z][^A-Z])/g); })
                 .enter().append("tspan")
                 .attr("x", 0)
                 .attr("y", 0)
@@ -182,139 +193,60 @@
         }
 
         function getWodData() {
-            $.ajax({
-              url: "data.json",
-              dataType: 'json',
-              success: function(data) {
-                renderGraph("all", data);
-                createDateToolbar(data);
+            let myData,mainsiteData;
+            $.when(
+              $.ajax({
+                url: "data.json",
+                dataType: 'json',
+                success: function(data) {
+                  myData = data;
+                }
+              }),
 
-                $( "#All" ).click(function() {
-                  $("#myChart").empty();
-                  renderGraph("all", data);
-                });
-                $( "#Warmup" ).click(function() {
-                  $("#myChart").empty();
-                  renderGraph("warmup", data);
-                });
-                $( "#Strength" ).click(function() {
-                  $("#myChart").empty();
-                  renderGraph("strength", data);
-                });
-                $( "#Wod" ).click(function() {
-                  $("#myChart").empty();
-                  renderGraph("wod", data);
-                });
-                $( "#Skills" ).click(function() {
-                  $("#myChart").empty();
-                  renderGraph("skills", data);
-                });
-                $( "#Primitives" ).click(function() {
-                  $("#myChart").empty();
-                  renderGraph("primitive", data);
-                });
-              }
+              $.ajax({
+                  url: "mainsite.json",
+                  dataType: 'json',
+                  success: function (data) {
+                    mainsiteData = data;
+                  }
+              })
+            ).then(function(){
+                renderGraph("all", myData, mainsiteData);
+                createDateToolbar(myData);
+                addClickEvents(myData);
             });
         }
 
-        function getRefinedWodData(wodData, type){
-            var refinedData = [];
-            for( var movement in wodData){
-                if(wodData[movement].type === type || type === 'all') {
-                    if (refinedData.length === 0) {
-                        refinedData.push({'id': wodData[movement].value, 'value': 1});
-                    } else {
-                        //check if movement is unique
-                        var isUnique = true;
-                        for (var i = 0; i < refinedData.length; i++) {
-                            if (refinedData[i].id === wodData[movement].value) {
-                                //increment counter
-                                refinedData[i].value = refinedData[i].value + 1;
-                                isUnique = false;
-                                break;
-                            }
-                        }
-                        if (isUnique) {
-                            //add as new
-                            refinedData.push({'id': wodData[movement].value, 'value': 1});
-                        }
-                    }
-                }
-            }
-            return refinedData;
-        }
-
-        function primitiveRefinedData(data){
-            var primitiveRefinedData = [
-                {'id': "squat", 'value': 0, 'subTypes': 'squat,thruster,wall ball'},
-                {'id': "bench/push up", 'value': 0, 'subTypes': 'bench,push up'},
-                {'id': "deadlift", 'value': 0, 'subTypes': 'deadlift,sdhp'},
-                {'id': "press", 'value': 0, 'subTypes': 'press,hspu,thruster,c&j,cluster,wall ball,jerk'},
-                {'id': "clean", 'value': 0, 'subTypes': 'clean,cluster,c&j'},
-                {'id': "snatch", 'value': 0, 'subTypes': 'snatch'},
-                {'id': "cardio", 'value': 0, 'subTypes': 'run,swim,row,burpee,bike'},
-                {'id': "skip", 'value': 0, 'subTypes': 'su,du,tu'},
-                {'id': "ttb", 'value': 0, 'subTypes': 'ttb,kte'},
-                {'id': "sit up", 'value': 0, 'subTypes': 'ghd,sit up'},
-                {'id': "pull up", 'value': 0, 'subTypes': 'pull up,c2b'},
-                {'id': "muscle up", 'value': 0, 'subTypes': 'ring mu,bar mu'},
-                {'id': "lunge", 'value': 0, 'subTypes': 'lunge'},
-                {'id': "rope climb", 'value': 0, 'subTypes': 'rope'},
-                {'id': "handstand", 'value': 0, 'subTypes': 'hs'},
-                {'id': "jump", 'value': 0, 'subTypes': 'jump'},
-                {'id': "other", 'value': 0, 'subTypes': undefined}
-            ];
-            for( var movement in data){
-                //check which primitive(s) movement belongs to
-                for(var primitiveMovement in primitiveRefinedData){
-                    if(primitiveRefinedData[primitiveMovement].subTypes){
-                        var subTypes = primitiveRefinedData[primitiveMovement].subTypes.split(",");
-                        for(var subType in subTypes){
-                            if (data[movement].id.indexOf(subTypes[subType]) !== -1) {
-                                primitiveRefinedData[primitiveMovement].value = primitiveRefinedData[primitiveMovement].value + data[movement].value;
-                            }
-                        }
-                    }else{
-                        var others ="squat,thruster,bench,deadlift,sdhp,press,hspu,c&j,cluster,clean,snatch,run,swim,row,burpee,su,du,tu,ttb,kte,ghd,sit up,pull up,c2b,ring mu,bar mu,lunge,rope,hs,wall ball,jerk,jump,push up,bike";
-                        var othersArr = others.split(",");
-                        var isOther = true;
-                        for(var other in othersArr){
-                            if (data[movement].id.indexOf(othersArr[other]) !== -1) {
-                                isOther = false;
-                                break;
-                            }
-                        }
-                        if(isOther) {
-                            primitiveRefinedData[16].value = primitiveRefinedData[16].value + data[movement].value;
-                        }
-                    }
-                }
-            }
-            return primitiveRefinedData;
-        }
-
-        function getDataInDateRange(data, dateFrom, dateTo){
-            var dateRangeData = [];
-            for( var movement in data){
-                if(data[movement].date){
-                    if(isDateWithinRange(data[movement].date,dateFrom,dateTo)){
-                        dateRangeData.push(data[movement]);
-                    }
-                }
-            }
-            return dateRangeData;
-        }
-
-        function isDateWithinRange(date,dateFrom,dateTo) {
-            date = stringToDate(date);
-            dateFrom = stringToDate(dateFrom);
-            dateTo = stringToDate(dateTo);
-            return dateFrom <= date && date <= dateTo;
+        function addClickEvents(data){
+            $( "#All" ).click(function() {
+                $("#myChart").empty();
+                renderGraph("all", data);
+            });
+            $( "#Warmup" ).click(function() {
+                $("#myChart").empty();
+                renderGraph("warmup", data);
+            });
+            $( "#Strength" ).click(function() {
+                $("#myChart").empty();
+                renderGraph("strength", data);
+            });
+            $( "#Wod" ).click(function() {
+                $("#myChart").empty();
+                renderGraph("wod", data);
+            });
+            $( "#Skills" ).click(function() {
+                $("#myChart").empty();
+                renderGraph("skills", data);
+            });
+            $( "#Primitives" ).click(function() {
+                $("#myChart").empty();
+                renderGraph("primitive", data);
+            });
         }
 
         function createDateToolbar(data){
-            var fromDatePicker = $('#from-datepicker');
-            var toDatePicker = $('#to-datepicker');
+            let fromDatePicker = $('#from-datepicker');
+            let toDatePicker = $('#to-datepicker');
 
 
             fromDatePicker.datepicker({
@@ -323,7 +255,7 @@
                 .on('changeDate', function() {
                     //render graph with date range
                     if(fromDatePicker.val() && toDatePicker.val()){
-                        var dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
+                        let dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
                         $("#myChart").empty();
                         renderGraph('all', dateRangeData);
                     }
@@ -335,7 +267,7 @@
                 .on('changeDate', function() {
                     //render graph with date range
                     if(fromDatePicker.val() && toDatePicker.val()){
-                        var dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
+                        let dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
                         $("#myChart").empty();
                         renderGraph('all', dateRangeData);
                     }
@@ -349,11 +281,6 @@
             })
         }
 
-        function stringToDate(str){
-            var dateParts = str.split("/");
-            return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-        }
-    
     </script>
   </body>
 </html>
