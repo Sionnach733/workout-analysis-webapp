@@ -124,3 +124,60 @@ function findValueInArr(valueToFind, Arr){
     }
     return value;
 }
+
+function addPercentageToData(myData, mainsiteData){
+    let percentArr = []
+    //loop through myData
+    for(let movement in myData){
+        let mainsiteVol = findValueInArr(myData[movement].id, mainsiteData);
+        myData[movement].percentage = calculatePercentage(myData[movement].value, mainsiteVol);
+        percentArr.push(myData[movement]);
+    }
+    return percentArr;
+}
+
+function calculatePercentage(myVal, mainsiteVal){
+    let percent = myVal/(myVal+mainsiteVal);
+    if(percent <= .5){
+        percent = percent * 2;
+    }else if(!percent) {
+        return 0;
+    }else{
+        percent = (1 - percent) * 2;
+    }
+    return percent;
+}
+
+function filterData(filter, rawWodData, rawMainsiteData){
+    let filteredData, filteredMainsiteData;
+    if(filter === 'primitive'){
+        let refinedData = getRefinedWodData(rawWodData, 'all');
+        //using refined data simplify the movements to primitives
+        filteredData = primitiveRefinedData(refinedData);
+        let refinedMainsiteDataData = getRefinedWodData(rawMainsiteData, 'all');
+        //using refined data simplify the movements to primitives
+        filteredMainsiteData = primitiveRefinedData(refinedMainsiteDataData);
+    }else{
+        filteredData = getRefinedWodData(rawWodData, filter);
+        filteredMainsiteData = getRefinedWodData(rawMainsiteData, filter);
+    }
+    return [filteredData, filteredMainsiteData];
+}
+
+function toPercentageRange(percentage){
+    let range = 6;
+    if(percentage > .85){
+        range = 5;
+    }else if(percentage > .7){
+        range = 4;
+    }else if(percentage > .55){
+        range = 3;
+    }else if(percentage > .4){
+        range = 2;
+    }else if(percentage > .25){
+        range = 1;
+    }else{
+        range = 0;
+    }
+    return range;
+}

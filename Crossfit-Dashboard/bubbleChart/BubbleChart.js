@@ -10,8 +10,9 @@ class BubbleChart{
             height = +svg.attr("height");
 
         let format = d3.format(",d");
+        let percentFormat = d3.format(".0%");
 
-        let color = d3.scaleOrdinal(d3.schemeRdYlGn[6]);
+        let color = d3.schemeRdYlGn[6];
 
         let pack = d3.pack()
             .size([width, height])
@@ -22,6 +23,7 @@ class BubbleChart{
             .each(function(data) {
                 if (data.data.id) {
                     data.id = data.data.id;
+                    data.percentage = data.data.percentage;
                 }
             });
 
@@ -34,7 +36,7 @@ class BubbleChart{
         node.append("circle")
             .attr("id", function(data) { return data.id; })
             .attr("r", function(data) { return data.r; })
-            .style("fill", function(data) { return color(data.id); });
+            .style("fill", function(data) { return color[toPercentageRange(data.percentage)]; });
 
         node.append("clipPath")
             .attr("id", function(data) { return "clip-" + data.id; })
@@ -51,7 +53,7 @@ class BubbleChart{
             .text(function(data) { return data; });
 
         node.append("title")
-            .text(function(data) { return data.id + "\n" + format(data.value); });
+            .text(function(data) { return data.id + "\nTimes: " + format(data.value) + "\n" + percentFormat(data.percentage); });
     }
 
 }

@@ -96,8 +96,6 @@
           <svg class="my-4" id="myChart" width="900" height="960" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>
           <h1 class ="h2 border-bottom pb-2">Top Movement Vs Mainsite</h1>
           <div id="mytoptrends"></div>
-          <!--<h1 class ="h2 border-bottom pb-2">Top 5 Biggest Differences</h1>-->
-          <!--<svg class="my-4" id="myTop5Diffs" width="900" height="960" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>-->
         </main>
       </div>
     </div>
@@ -120,10 +118,8 @@
 
     <!-- Graphs -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="utils/utils.js"></script>
-    <script src="https://d3js.org/d3-color.v1.min.js"></script>
-    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <script src="utils/utils.js"></script>
     <script src="barChart/barchart.js"></script>
     <script src="bubbleChart/BubbleChart.js"></script>
     <script>
@@ -131,22 +127,6 @@
         function renderGraphs(filteredData, filteredMainsiteData){
             new BarChart(getTopMovements(filteredData,filteredMainsiteData));
             new BubbleChart(filteredData);
-        }
-
-        function filterData(filter, rawWodData, rawMainsiteData){
-            let filteredData, filteredMainsiteData;
-            if(filter === 'primitive'){
-                let refinedData = getRefinedWodData(rawWodData, 'all');
-                //using refined data simplify the movements to primitives
-                filteredData = primitiveRefinedData(refinedData);
-                let refinedMainsiteDataData = getRefinedWodData(rawMainsiteData, 'all');
-                //using refined data simplify the movements to primitives
-                filteredMainsiteData = primitiveRefinedData(refinedMainsiteDataData);
-            }else{
-                filteredData = getRefinedWodData(rawWodData, filter);
-                filteredMainsiteData = getRefinedWodData(rawMainsiteData, filter);
-            }
-            return [filteredData, filteredMainsiteData];
         }
 
         function getWodData() {
@@ -169,6 +149,7 @@
               })
             ).then(function(){
                 let filteredData = filterData("all", myData, mainsiteData);
+                filteredData[0] = addPercentageToData(filteredData[0], filteredData[1]);
                 renderGraphs(filteredData[0], filteredData[1]);
                 createDateToolbar(myData, mainsiteData);
                 addClickEvents(filteredData[0], filteredData[1]);
