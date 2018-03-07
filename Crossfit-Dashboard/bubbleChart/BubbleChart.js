@@ -11,7 +11,7 @@ class BubbleChart{
 
         let format = d3.format(",d");
 
-        let color = d3.scaleOrdinal(d3.schemeCategory20c);
+        let color = d3.scaleOrdinal(d3.schemeRdYlGn[6]);
 
         let pack = d3.pack()
             .size([width, height])
