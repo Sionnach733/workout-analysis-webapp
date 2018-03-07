@@ -122,22 +122,15 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="utils/utils.js"></script>
     <script src="barChart/barchart.js"></script>
+    <script src="bubbleChart/BubbleChart.js"></script>
     <script>
         getWodData();
-        function renderGraph(filter, rawWodData, rawMainsiteData){
+        function renderGraphs(filteredData, filteredMainsiteData){
+            new BarChart(getTopMovements(filteredData,filteredMainsiteData));
+            new BubbleChart(filteredData);
+        }
 
-            let svg = d3.select("#myChart"),
-                    width = +svg.attr("width"),
-                    height = +svg.attr("height");
-
-            let format = d3.format(",d");
-
-            let color = d3.scaleOrdinal(d3.schemeCategory20c);
-
-            let pack = d3.pack()
-                .size([width, height])
-                .padding(1.5);
-
+        function filterData(filter, rawWodData, rawMainsiteData){
             let filteredData, filteredMainsiteData;
             if(filter === 'primitive'){
                 let refinedData = getRefinedWodData(rawWodData, 'all');
@@ -150,46 +143,7 @@
                 filteredData = getRefinedWodData(rawWodData, filter);
                 filteredMainsiteData = getRefinedWodData(rawMainsiteData, filter);
             }
-
-            new BarChart(getTopMovements(filteredData,filteredMainsiteData));
-
-            let root = d3.hierarchy({children: filteredData})
-                .sum(function(data) { return data.value; })
-                .each(function(data) {
-                    if (data.data.id) {
-                        let id = data.data.id;
-                        data.id = id;
-                    }
-                });
-
-            let node = svg.selectAll(".node")
-                .data(pack(root).leaves())
-                .enter().append("g")
-                .attr("class", "node")
-                .attr("transform", function(data) { return "translate(" + data.x + "," + data.y + ")"; });
-
-            node.append("circle")
-                .attr("id", function(data) { return data.id; })
-                .attr("r", function(data) { return data.r; })
-                .style("fill", function(data) { return color(data.id); });
-
-            node.append("clipPath")
-                .attr("id", function(data) { return "clip-" + data.id; })
-                .append("use")
-                .attr("xlink:href", function(data) { return "#" + data.id; });
-
-            node.append("text")
-                .attr("clip-path", function(data) { return "url(#clip-" + data.id + ")"; })
-                .selectAll("tspan")
-                .data(function(data) { return data.id.split(/(?=[A-Z][^A-Z])/g); })
-                .enter().append("tspan")
-                .attr("x", 0)
-                .attr("y", 0)
-                .text(function(data) { return data; });
-
-            node.append("title")
-                .text(function(data) { return data.id + "\n" + format(data.value); });
-
+            return [filteredData, filteredMainsiteData];
         }
 
         function getWodData() {
@@ -211,40 +165,52 @@
                   }
               })
             ).then(function(){
-                renderGraph("all", myData, mainsiteData);
-                createDateToolbar(myData);
-                addClickEvents(myData);
+                let filteredData = filterData("all", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
+                createDateToolbar(myData, mainsiteData);
+                addClickEvents(filteredData[0], filteredData[1]);
             });
         }
 
-        function addClickEvents(data){
+        function addClickEvents(myData, mainsiteData){
             $( "#All" ).click(function() {
-                $("#myChart").empty();
-                renderGraph("all", data);
+                clearCharts();
+                let filteredData = filterData("all", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
             });
             $( "#Warmup" ).click(function() {
-                $("#myChart").empty();
-                renderGraph("warmup", data);
+                clearCharts();
+                let filteredData = filterData("warmup", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
             });
             $( "#Strength" ).click(function() {
-                $("#myChart").empty();
-                renderGraph("strength", data);
+                clearCharts();
+                let filteredData = filterData("strength", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
             });
             $( "#Wod" ).click(function() {
-                $("#myChart").empty();
-                renderGraph("wod", data);
+                clearCharts();
+                let filteredData = filterData("wod", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
             });
             $( "#Skills" ).click(function() {
-                $("#myChart").empty();
-                renderGraph("skills", data);
+                clearCharts();
+                let filteredData = filterData("skills", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
             });
             $( "#Primitives" ).click(function() {
-                $("#myChart").empty();
-                renderGraph("primitive", data);
+                clearCharts();
+                let filteredData = filterData("primitive", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
             });
         }
 
-        function createDateToolbar(data){
+        function clearCharts() {
+            $("#myChart").empty();
+            $("#mytoptrends").empty();
+        }
+
+        function createDateToolbar(myData, mainsiteData){
             let fromDatePicker = $('#from-datepicker');
             let toDatePicker = $('#to-datepicker');
 
@@ -255,9 +221,11 @@
                 .on('changeDate', function() {
                     //render graph with date range
                     if(fromDatePicker.val() && toDatePicker.val()){
-                        let dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
-                        $("#myChart").empty();
-                        renderGraph('all', dateRangeData);
+                        let dateRangeMyData = getDataInDateRange(myData,fromDatePicker.val(),toDatePicker.val());
+                        let dateRangeMainsiteData = getDataInDateRange(mainsiteData,fromDatePicker.val(),toDatePicker.val());
+                        clearCharts();
+                        let filteredData = filterData("all", dateRangeMyData, dateRangeMainsiteData);
+                        renderGraphs(filteredData[0], filteredData[1]);
                     }
                 });
 
@@ -267,17 +235,20 @@
                 .on('changeDate', function() {
                     //render graph with date range
                     if(fromDatePicker.val() && toDatePicker.val()){
-                        let dateRangeData = getDataInDateRange(data,fromDatePicker.val(),toDatePicker.val());
-                        $("#myChart").empty();
-                        renderGraph('all', dateRangeData);
+                        let dateRangeMyData = getDataInDateRange(myData,fromDatePicker.val(),toDatePicker.val());
+                        let dateRangeMainsiteData = getDataInDateRange(mainsiteData,fromDatePicker.val(),toDatePicker.val());
+                        clearCharts();
+                        let filteredData = filterData("all", dateRangeMyData, dateRangeMainsiteData);
+                        renderGraphs(filteredData[0], filteredData[1]);
                     }
                 });
 
             $('#clear-btn').button().click(function(){
                 fromDatePicker.datepicker('setDate', null);
                 toDatePicker.datepicker('setDate', null);
-                $("#myChart").empty();
-                renderGraph('all', data);
+                clearCharts();
+                let filteredData = filterData("all", myData, mainsiteData);
+                renderGraphs(filteredData[0], filteredData[1]);
             })
         }
 
