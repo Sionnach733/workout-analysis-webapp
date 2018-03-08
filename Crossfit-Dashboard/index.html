@@ -107,7 +107,6 @@
     <script>window.jQuery || document.write('<script src="../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
     <script src="../assets/js/vendor/popper.min.js"></script>
     <script src="../dist/js/bootstrap.min.js"></script>
-    <!--<script src="../dist/js/require.js"></script>-->
     <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.min.js"></script>
 
     <!-- Icons -->
@@ -152,41 +151,36 @@
                 filteredData[0] = addPercentageToData(filteredData[0], filteredData[1]);
                 renderGraphs(filteredData[0], filteredData[1]);
                 createDateToolbar(myData, mainsiteData);
-                addClickEvents(filteredData[0], filteredData[1]);
+                addClickEvents(myData, mainsiteData);
             });
         }
 
         function addClickEvents(myData, mainsiteData){
             $( "#All" ).click(function() {
-                clearCharts();
-                let filteredData = filterData("all", myData, mainsiteData);
-                renderGraphs(filteredData[0], filteredData[1]);
+                handleClick("all", myData, mainsiteData);
             });
             $( "#Warmup" ).click(function() {
-                clearCharts();
-                let filteredData = filterData("warmup", myData, mainsiteData);
-                renderGraphs(filteredData[0], filteredData[1]);
+                handleClick("warmup", myData, mainsiteData);
             });
             $( "#Strength" ).click(function() {
-                clearCharts();
-                let filteredData = filterData("strength", myData, mainsiteData);
-                renderGraphs(filteredData[0], filteredData[1]);
+                handleClick("strength", myData, mainsiteData);
             });
             $( "#Wod" ).click(function() {
-                clearCharts();
-                let filteredData = filterData("wod", myData, mainsiteData);
-                renderGraphs(filteredData[0], filteredData[1]);
+                handleClick("wod", myData, mainsiteData);
             });
             $( "#Skills" ).click(function() {
-                clearCharts();
-                let filteredData = filterData("skills", myData, mainsiteData);
-                renderGraphs(filteredData[0], filteredData[1]);
+                handleClick("skills", myData, mainsiteData);
             });
             $( "#Primitives" ).click(function() {
-                clearCharts();
-                let filteredData = filterData("primitive", myData, mainsiteData);
-                renderGraphs(filteredData[0], filteredData[1]);
+                handleClick("primitive", myData, mainsiteData);
             });
+        }
+
+        function handleClick(filter, myData, mainsiteData){
+            clearCharts();
+            let filteredData = filterData(filter, myData, mainsiteData);
+            filteredData[0] = addPercentageToData(filteredData[0], filteredData[1]);
+            renderGraphs(filteredData[0], filteredData[1]);
         }
 
         function clearCharts() {
@@ -209,6 +203,7 @@
                         let dateRangeMainsiteData = getDataInDateRange(mainsiteData,fromDatePicker.val(),toDatePicker.val());
                         clearCharts();
                         let filteredData = filterData("all", dateRangeMyData, dateRangeMainsiteData);
+                        filteredData[0] = addPercentageToData(filteredData[0], filteredData[1]);
                         renderGraphs(filteredData[0], filteredData[1]);
                     }
                 });
@@ -223,17 +218,23 @@
                         let dateRangeMainsiteData = getDataInDateRange(mainsiteData,fromDatePicker.val(),toDatePicker.val());
                         clearCharts();
                         let filteredData = filterData("all", dateRangeMyData, dateRangeMainsiteData);
+                        filteredData[0] = addPercentageToData(filteredData[0], filteredData[1]);
                         renderGraphs(filteredData[0], filteredData[1]);
                     }
                 });
 
             $('#clear-btn').button().click(function(){
-                fromDatePicker.datepicker('setDate', null);
-                toDatePicker.datepicker('setDate', null);
-                clearCharts();
-                let filteredData = filterData("all", myData, mainsiteData);
-                renderGraphs(filteredData[0], filteredData[1]);
+                clearDates(fromDatePicker, toDatePicker, myData, mainsiteData);
             })
+        }
+
+        function clearDates(fromDatePicker, toDatePicker, myData, mainsiteData){
+            fromDatePicker.datepicker('setDate', null);
+            toDatePicker.datepicker('setDate', null);
+            clearCharts();
+            let filteredData = filterData("all", myData, mainsiteData);
+            filteredData[0] = addPercentageToData(filteredData[0], filteredData[1]);
+            renderGraphs(filteredData[0], filteredData[1]);
         }
 
     </script>
