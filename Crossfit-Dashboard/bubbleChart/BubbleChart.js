@@ -24,6 +24,7 @@ class BubbleChart{
                 if (data.data.id) {
                     data.id = data.data.id;
                     data.percentage = data.data.percentage;
+                    data.ratio = data.data.ratio;
                 }
             });
 
@@ -36,7 +37,7 @@ class BubbleChart{
         node.append("circle")
             .attr("id", function(data) { return data.id; })
             .attr("r", function(data) { return data.r; })
-            .style("fill", function(data) { return color[toPercentageRange(data.percentage)]; });
+            .style("fill", function(data) { return color[toPercentageRange(calculateValueForHeatmap(data.percentage))]; });
 
         node.append("clipPath")
             .attr("id", function(data) { return "clip-" + data.id; })
@@ -53,7 +54,7 @@ class BubbleChart{
             .text(function(data) { return data; });
 
         node.append("title")
-            .text(function(data) { return data.id + "\nTimes: " + format(data.value) + "\n" + percentFormat(data.percentage); });
+            .text(function(data) { return data.id + "\nTimes: " + format(data.value) + "\n" + percentFormat(data.ratio); });
     }
 
 }

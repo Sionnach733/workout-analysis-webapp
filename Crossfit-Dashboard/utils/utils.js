@@ -131,13 +131,21 @@ function addPercentageToData(myData, mainsiteData){
     for(let movement in myData){
         let mainsiteVol = findValueInArr(myData[movement].id, mainsiteData);
         myData[movement].percentage = calculatePercentage(myData[movement].value, mainsiteVol);
+        myData[movement].ratio = calculateRatio(myData[movement].value, mainsiteVol);
         percentArr.push(myData[movement]);
     }
     return percentArr;
 }
 
 function calculatePercentage(myVal, mainsiteVal){
-    let percent = myVal/(myVal+mainsiteVal);
+    return myVal/(myVal+mainsiteVal);
+}
+
+function calculateRatio(myVal, mainsiteVal){
+    return myVal/mainsiteVal;
+}
+
+function calculateValueForHeatmap(percent){
     if(percent <= .5){
         percent = percent * 2;
     }else if(!percent) {
