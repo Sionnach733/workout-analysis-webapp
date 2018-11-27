@@ -5,24 +5,24 @@ function stringToDate(str){
 
 function getRefinedWodData(wodData, type){
     let refinedData = [];
-    for( let movement in wodData){
-        if(wodData[movement].type === type || type === 'all') {
+    for( let movement of wodData){
+        if(movement.type === type || type === 'all') {
             if (refinedData.length === 0) {
-                refinedData.push({'id': wodData[movement].value, 'value': 1});
+                refinedData.push({'id': movement.value, 'value': 1});
             } else {
                 //check if movement is unique
                 let isUnique = true;
-                for (let i = 0; i < refinedData.length; i++) {
-                    if (refinedData[i].id === wodData[movement].value) {
+                for (let refinedMovement of refinedData) {
+                    if (refinedMovement.id === movement.value) {
                         //increment counter
-                        refinedData[i].value = refinedData[i].value + 1;
+                        refinedMovement.value = refinedMovement.value + 1;
                         isUnique = false;
                         break;
                     }
                 }
                 if (isUnique) {
                     //add as new
-                    refinedData.push({'id': wodData[movement].value, 'value': 1});
+                    refinedData.push({'id': movement.value, 'value': 1});
                 }
             }
         }
@@ -32,9 +32,7 @@ function getRefinedWodData(wodData, type){
 
 function sortDataByValue(data){
     // sort by value descending
-    data.sort(function (a, b) {
-        return b.value - a.value;
-    });
+    data.sort((a, b) => b.value - a.value);
 }
 
 function primitiveRefinedData(data){
@@ -57,28 +55,28 @@ function primitiveRefinedData(data){
         {'id': "jump", 'value': 0, 'subTypes': 'jump'},
         {'id': "other", 'value': 0, 'subTypes': undefined}
     ];
-    for( let movement in data){
+    for( let movement of data){
         //check which primitive(s) movement belongs to
         for(let primitiveMovement in primitiveRefinedData){
-            if(primitiveRefinedData[primitiveMovement].subTypes){
-                let subTypes = primitiveRefinedData[primitiveMovement].subTypes.split(",");
-                for(let subType in subTypes){
-                    if (data[movement].id.indexOf(subTypes[subType]) !== -1) {
-                        primitiveRefinedData[primitiveMovement].value = primitiveRefinedData[primitiveMovement].value + data[movement].value;
+            if(primitiveMovement.subTypes){
+                let subTypes = primitiveMovement.subTypes.split(",");
+                for(let subType of subTypes){
+                    if (movement.id.indexOf(subType) !== -1) {
+                        primitiveMovement.value = primitiveMovement.value + movement.value;
                     }
                 }
             }else{
                 let others ="squat,thruster,bench,deadlift,sdhp,press,hspu,c&j,cluster,clean,snatch,run,swim,row,burpee,su,du,tu,ttb,kte,ghd,sit up,pull up,c2b,ring mu,bar mu,lunge,rope,hs,wall ball,jerk,jump,push up,bike";
                 let othersArr = others.split(",");
                 let isOther = true;
-                for(let other in othersArr){
-                    if (data[movement].id.indexOf(othersArr[other]) !== -1) {
+                for(let other of othersArr){
+                    if (movement.id.indexOf(other) !== -1) {
                         isOther = false;
                         break;
                     }
                 }
                 if(isOther) {
-                    primitiveRefinedData[16].value = primitiveRefinedData[16].value + data[movement].value;
+                    primitiveRefinedData[16].value = primitiveRefinedData[16].value + movement.value;
                 }
             }
         }
@@ -88,10 +86,10 @@ function primitiveRefinedData(data){
 
 function getDataInDateRange(data, dateFrom, dateTo){
     let dateRangeData = [];
-    for( let movement in data){
-        if(data[movement].date){
-            if(isDateWithinRange(data[movement].date,dateFrom,dateTo)){
-                dateRangeData.push(data[movement]);
+    for( let movement of data){
+        if(movement.date){
+            if(isDateWithinRange(movement.date,dateFrom,dateTo)){
+                dateRangeData.push(movement);
             }
         }
     }
@@ -116,9 +114,9 @@ function getTopMovements(myData, mainsiteData){
 
 function findValueInArr(valueToFind, Arr){
     let value = "";
-    for(let entry in Arr){
-        if(Arr[entry].id === valueToFind){
-            value = Arr[entry].value;
+    for(let entry of Arr){
+        if(entry.id === valueToFind){
+            value = entry.value;
             break;
         }
     }
@@ -126,13 +124,13 @@ function findValueInArr(valueToFind, Arr){
 }
 
 function addPercentageToData(myData, mainsiteData){
-    let percentArr = []
+    let percentArr = [];
     //loop through myData
-    for(let movement in myData){
-        let mainsiteVol = findValueInArr(myData[movement].id, mainsiteData);
-        myData[movement].percentage = calculatePercentage(myData[movement].value, mainsiteVol);
-        myData[movement].ratio = calculateRatio(myData[movement].value, mainsiteVol);
-        percentArr.push(myData[movement]);
+    for(let movement of myData){
+        let mainsiteVol = findValueInArr(movement.id, mainsiteData);
+        movement.percentage = calculatePercentage(movement.value, mainsiteVol);
+        movement.ratio = calculateRatio(movement.value, mainsiteVol);
+        percentArr.push(movement);
     }
     return percentArr;
 }

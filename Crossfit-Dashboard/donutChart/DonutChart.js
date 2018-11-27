@@ -26,14 +26,14 @@ class DonutChart{
 
         let pie = d3.pie()
             .sort(null)
-            .value(function(d) { return d.average; });
+            .value((d) => d.average);
 
         context.translate(width / 2, height / 2);
 
 
         let arcs = pie(data);
 
-        arcs.forEach(function(d, i) {
+        arcs.forEach((d, i) => {
             context.beginPath();
             arc(d);
             context.fillStyle = colors[i];
@@ -48,7 +48,7 @@ class DonutChart{
         context.textAlign = "center";
         context.textBaseline = "middle";
         context.fillStyle = "#000";
-        arcs.forEach(function(d) {
+        arcs.forEach((d) => {
             let c = labelArc.centroid(d);
             context.fillText(d.data.source, c[0], c[1]);
         });

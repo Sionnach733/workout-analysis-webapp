@@ -19,8 +19,8 @@ class BubbleChart{
             .padding(1.5);
 
         let root = d3.hierarchy({children: data})
-            .sum(function(data) { return data.value; })
-            .each(function(data) {
+            .sum((data) => data.value)
+            .each((data) => {
                 if (data.data.id) {
                     data.id = data.data.id;
                     data.percentage = data.data.percentage;
@@ -32,29 +32,29 @@ class BubbleChart{
             .data(pack(root).leaves())
             .enter().append("g")
             .attr("class", "node")
-            .attr("transform", function(data) { return "translate(" + data.x + "," + data.y + ")"; });
+            .attr("transform", (data) => "translate(" + data.x + "," + data.y + ")");
 
         node.append("circle")
-            .attr("id", function(data) { return data.id; })
-            .attr("r", function(data) { return data.r; })
-            .style("fill", function(data) { return color[toPercentageRange(calculateValueForHeatmap(data.percentage))]; });
+            .attr("id", (data) =>  data.id)
+            .attr("r", (data) => data.r)
+            .style("fill", (data) => color[toPercentageRange(calculateValueForHeatmap(data.percentage))]);
 
         node.append("clipPath")
-            .attr("id", function(data) { return "clip-" + data.id; })
+            .attr("id", (data) => "clip-" + data.id)
             .append("use")
-            .attr("xlink:href", function(data) { return "#" + data.id; });
+            .attr("xlink:href", (data) => "#" + data.id);
 
         node.append("text")
-            .attr("clip-path", function(data) { return "url(#clip-" + data.id + ")"; })
+            .attr("clip-path", (data) => "url(#clip-" + data.id + ")")
             .selectAll("tspan")
-            .data(function(data) { return data.id.split(/(?=[A-Z][^A-Z])/g); })
+            .data((data) => data.id.split(/(?=[A-Z][^A-Z])/g))
             .enter().append("tspan")
             .attr("x", 0)
             .attr("y", 0)
-            .text(function(data) { return data; });
+            .text((data) => data);
 
         node.append("title")
-            .text(function(data) { return data.id + "\nTimes: " + format(data.value) + "\n" + percentFormat(data.ratio); });
+            .text((data) => data.id + "\nTimes: " + format(data.value) + "\n" + percentFormat(data.ratio));
     }
 
 }

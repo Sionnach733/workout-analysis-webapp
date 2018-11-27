@@ -31,14 +31,14 @@ class BarChart {
         let format = d3.format(",d");
 
         // format the data
-        data.forEach(function(d) {
+        data.forEach((d) => {
             d.myAmt = +d.myAmt;
             d.mainsiteAmt = +d.mainsiteAmt;
         });
 
         // Scale the range of the data in the domains
-        x.domain(data.map(function(d) { return d.movement; }));
-        y.domain([0, d3.max(data, function(d) { return d.myAmt>d.mainsiteAmt?d.myAmt:d.mainsiteAmt; })]);
+        x.domain(data.map((d) => d.movement));
+        y.domain([0, d3.max(data, (d) => d.myAmt>d.mainsiteAmt?d.myAmt:d.mainsiteAmt)]);
 
         // append the rectangles for the bar chart
         let bar = svg.selectAll(".bar")
@@ -48,20 +48,20 @@ class BarChart {
 
         bar.append("rect")
             .attr("class", "bar1")
-            .attr("x", function(d) { return x(d.movement); })
+            .attr("x", (d) => x(d.movement))
             .attr("width", x.bandwidth()/2)
-            .attr("y", function(d) { return y(d.myAmt); })
-            .attr("height", function(d) { return height - y(d.myAmt); });
+            .attr("y", (d) => y(d.myAmt))
+            .attr("height", (d) => height - y(d.myAmt));
 
         bar.append("rect")
             .attr("class", "bar2")
-            .attr("x", function(d) { return x(d.movement) + x.bandwidth()/2; })
+            .attr("x", (d) => x(d.movement) + x.bandwidth()/2)
             .attr("width", x.bandwidth()/2)
-            .attr("y", function(d) { return y(d.mainsiteAmt); })
-            .attr("height", function(d) { return height - y(d.mainsiteAmt); });
+            .attr("y", (d) => y(d.mainsiteAmt))
+            .attr("height", (d) => height - y(d.mainsiteAmt));
 
         bar.append("title")
-            .text(function(data) { return "My Workouts: " + format(data.myAmt) + "\nMainsite: " + format(data.mainsiteAmt); });
+            .text((data) => "My Workouts: " + format(data.myAmt) + "\nMainsite: " + format(data.mainsiteAmt));
 
         // add the x Axis
         svg.append("g")
