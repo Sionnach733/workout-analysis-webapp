@@ -104,12 +104,16 @@ function isDateWithinRange(date,dateFrom,dateTo) {
 }
 
 function getTopMovements(myData, mainsiteData){
-    sortDataByValue(myData);
-    sortDataByValue(mainsiteData);
-    return [
-        {"movement":myData[0].id,"myAmt":myData[0].value,"mainsiteAmt":findValueInArr(myData[0].id, mainsiteData)},
-        {"movement":mainsiteData[0].id,"myAmt":findValueInArr(mainsiteData[0].id, myData),"mainsiteAmt":mainsiteData[0].value}
-    ]
+    if(myData.length === 0 || mainsiteData.length === 0){
+        alert("invalid date range, clear and try again");
+    }else{
+        sortDataByValue(myData);
+        sortDataByValue(mainsiteData);
+        return [
+            {"movement":myData[0].id,"myAmt":myData[0].value,"mainsiteAmt":findValueInArr(myData[0].id, mainsiteData)},
+            {"movement":mainsiteData[0].id,"myAmt":findValueInArr(mainsiteData[0].id, myData),"mainsiteAmt":mainsiteData[0].value}
+        ]
+    }
 }
 
 function findValueInArr(valueToFind, Arr){
