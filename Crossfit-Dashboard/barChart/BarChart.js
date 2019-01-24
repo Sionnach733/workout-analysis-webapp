@@ -1,4 +1,4 @@
-class BarChart {
+export class BarChart {
 
     constructor(data){
         this.renderBarChart(data);

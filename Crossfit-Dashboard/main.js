@@ -1,3 +1,8 @@
+import {getTopMovements, filterData, addPercentageToData, getDataInDateRange} from './utils/utils.js';
+import {BarChart} from './barChart/BarChart.js';
+import {BubbleChart} from './bubbleChart/BubbleChart.js';
+import {DonutChart} from './donutChart/DonutChart.js';
+
 $(document).ready(() => {
     getWodData();
     setupDropdown();

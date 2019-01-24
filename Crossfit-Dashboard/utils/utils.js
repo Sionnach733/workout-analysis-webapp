@@ -3,7 +3,7 @@ function stringToDate(str){
     return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
 }
 
-function getRefinedWodData(wodData, type){
+export function getRefinedWodData(wodData, type){
     let refinedData = [];
     for( let movement of wodData){
         if(movement.type === type || type === 'all') {
@@ -35,7 +35,7 @@ function sortDataByValue(data){
     data.sort((a, b) => b.value - a.value);
 }
 
-function primitiveRefinedData(data){
+export function primitiveRefinedData(data){
     let primitiveRefinedData = [
         {'id': "squat", 'value': 0, 'subTypes': 'squat,thruster,wall ball'},
         {'id': "bench/push up", 'value': 0, 'subTypes': 'bench,push up'},
@@ -84,7 +84,7 @@ function primitiveRefinedData(data){
     return primitiveRefinedData;
 }
 
-function getDataInDateRange(data, dateFrom, dateTo){
+export function getDataInDateRange(data, dateFrom, dateTo){
     let dateRangeData = [];
     for( let movement of data){
         if(movement.date){
@@ -96,27 +96,25 @@ function getDataInDateRange(data, dateFrom, dateTo){
     return dateRangeData;
 }
 
-function isDateWithinRange(date,dateFrom,dateTo) {
+export function isDateWithinRange(date,dateFrom,dateTo) {
     date = stringToDate(date);
     dateFrom = stringToDate(dateFrom);
     dateTo = stringToDate(dateTo);
     return dateFrom <= date && date <= dateTo;
 }
 
-function getTopMovements(myData, mainsiteData){
-    if(myData.length === 0 || mainsiteData.length === 0){
-        alert("invalid date range, clear and try again");
-    }else{
+export function getTopMovements(myData, mainsiteData){
         sortDataByValue(myData);
         sortDataByValue(mainsiteData);
+        let myTopMovement = myData.length>0?myData[0]:{id:'no data', value:0};
+        let mainsiteTopMovement = mainsiteData.length>0?mainsiteData[0]:{id:'no data', value:0};
         return [
-            {"movement":myData[0].id,"myAmt":myData[0].value,"mainsiteAmt":findValueInArr(myData[0].id, mainsiteData)},
-            {"movement":mainsiteData[0].id,"myAmt":findValueInArr(mainsiteData[0].id, myData),"mainsiteAmt":mainsiteData[0].value}
+            {"movement":myTopMovement.id,"myAmt":myTopMovement.value,"mainsiteAmt":findValueInArr(myTopMovement.id, mainsiteData)},
+            {"movement":mainsiteTopMovement.id,"myAmt":findValueInArr(mainsiteTopMovement.id, myData),"mainsiteAmt":mainsiteTopMovement.value}
         ]
-    }
 }
 
-function findValueInArr(valueToFind, Arr){
+export function findValueInArr(valueToFind, Arr){
     let value = "";
     for(let entry of Arr){
         if(entry.id === valueToFind){
@@ -127,7 +125,7 @@ function findValueInArr(valueToFind, Arr){
     return value;
 }
 
-function addPercentageToData(myData, mainsiteData){
+export function addPercentageToData(myData, mainsiteData){
     let percentArr = [];
     //loop through myData
     for(let movement of myData){
@@ -147,7 +145,7 @@ function calculateRatio(myVal, mainsiteVal){
     return myVal/mainsiteVal;
 }
 
-function calculateValueForHeatmap(percent){
+export function calculateValueForHeatmap(percent){
     if(percent <= .5){
         percent = percent * 2;
     }else if(!percent) {
@@ -158,7 +156,7 @@ function calculateValueForHeatmap(percent){
     return percent;
 }
 
-function filterData(filter, rawWodData, rawMainsiteData){
+export function filterData(filter, rawWodData, rawMainsiteData){
     let filteredData, filteredMainsiteData;
     if(filter === 'primitive'){
         let refinedData = getRefinedWodData(rawWodData, 'all');
@@ -174,7 +172,7 @@ function filterData(filter, rawWodData, rawMainsiteData){
     return [filteredData, filteredMainsiteData];
 }
 
-function toPercentageRange(percentage){
+export function toPercentageRange(percentage){
     let range = 6;
     if(percentage > .85){
         range = 5;

@@ -1,4 +1,4 @@
-class DonutChart{
+export class DonutChart{
 
     constructor(data){
         this.renderDonutChart(data);

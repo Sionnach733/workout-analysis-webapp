@@ -1,4 +1,6 @@
-class BubbleChart{
+import {toPercentageRange, calculateValueForHeatmap} from '../utils/utils.js';
+
+export class BubbleChart{
 
     constructor(data){
         this.renderBubbleChart(data);
