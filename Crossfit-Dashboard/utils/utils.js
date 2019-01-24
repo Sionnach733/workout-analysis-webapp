@@ -35,7 +35,7 @@ function sortDataByValue(data){
     data.sort((a, b) => b.value - a.value);
 }
 
-export function primitiveRefinedData(data){
+function primitiveRefinedData(data){
     let primitiveRefinedData = [
         {'id': "squat", 'value': 0, 'subTypes': 'squat,thruster,wall ball'},
         {'id': "bench/push up", 'value': 0, 'subTypes': 'bench,push up'},
@@ -55,9 +55,9 @@ export function primitiveRefinedData(data){
         {'id': "jump", 'value': 0, 'subTypes': 'jump'},
         {'id': "other", 'value': 0, 'subTypes': undefined}
     ];
-    for( let movement of data){
+    for(let movement of data){
         //check which primitive(s) movement belongs to
-        for(let primitiveMovement in primitiveRefinedData){
+        for(let primitiveMovement of primitiveRefinedData){
             if(primitiveMovement.subTypes){
                 let subTypes = primitiveMovement.subTypes.split(",");
                 for(let subType of subTypes){
